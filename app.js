@@ -8,8 +8,7 @@ const xss = require('xss-clean');
 const hpp = require('hpp');
 const compression = require('compression');
 
-const errorHandler = require('./middleware/errorHandler');
-const { notFound } = require('./middleware/errorHandler');
+const { errorHandler, notFound } = require('./middleware/errorHandler');
 
 // Load environment variables
 require('./config/env');

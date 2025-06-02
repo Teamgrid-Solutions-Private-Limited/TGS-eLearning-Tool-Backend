@@ -1,0 +1,27 @@
+const mongoose = require('mongoose');
+
+const lessonSchema = new mongoose.Schema({
+  course: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Course', 
+    required: true 
+  },
+  title: { 
+    type: String, 
+    required: true 
+  },
+  description: String,
+  sequence: { 
+    type: Number, 
+    required: true 
+  },
+  duration: Number, // in minutes
+  thumbnailUrl: String,
+  objectives: [{ 
+    type: String 
+  }]
+}, { 
+  timestamps: true 
+});
+
+module.exports = mongoose.model('Lesson', lessonSchema); 
