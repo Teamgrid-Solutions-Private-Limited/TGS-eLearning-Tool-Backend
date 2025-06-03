@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const { AppError } = require('./errorHandler');
 const config = require('../config/env');
 const User = require('../models/user.model');
+const Role = require('../models/role.model');
 
 const protect = async (req, res, next) => {
   try {
@@ -20,8 +21,8 @@ const protect = async (req, res, next) => {
       // Verify token
       const decoded = jwt.verify(token, config.jwt.secret);
 
-      // Get user from token
-      const user = await User.findById(decoded.id).select('-password');
+      // Get user from token with populated role
+      const user = await User.findById(decoded.id).select('-password').populate('role');
 
       if (!user) {
         return next(new AppError('User not found', 401));
@@ -38,12 +39,19 @@ const protect = async (req, res, next) => {
   }
 };
 
-const authorize = (...roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return next(new AppError(`User role ${req.user.role} is not authorized to access this route`, 403));
+const authorize = (...roleNames) => {
+  return async (req, res, next) => {
+    try {
+      // Get the user's role name
+      const userRoleName = req.user.role.name;
+      
+      if (!roleNames.includes(userRoleName)) {
+        return next(new AppError(`User role ${userRoleName} is not authorized to access this route`, 403));
+      }
+      next();
+    } catch (err) {
+      return next(new AppError('Role authorization error', 500));
     }
-    next();
   };
 };
 

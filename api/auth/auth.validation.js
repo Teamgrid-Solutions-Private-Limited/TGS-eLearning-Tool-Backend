@@ -1,39 +1,50 @@
 const { body } = require('express-validator');
+const mongoose = require('mongoose');
 const { ROLES } = require('../../config/constants');
+const Role = require('../../models/role.model');
 
 exports.registerValidation = [
   body('firstName')
+    .exists().withMessage('First name is required')
     .trim()
-    .notEmpty()
-    .withMessage('First name is required')
-    .isLength({ max: 50 })
-    .withMessage('First name cannot be more than 50 characters'),
+    .notEmpty().withMessage('First name cannot be empty')
+    .isLength({ max: 50 }).withMessage('First name cannot be more than 50 characters'),
   
   body('lastName')
+    .exists().withMessage('Last name is required')
     .trim()
-    .notEmpty()
-    .withMessage('Last name is required')
-    .isLength({ max: 50 })
-    .withMessage('Last name cannot be more than 50 characters'),
+    .notEmpty().withMessage('Last name cannot be empty')
+    .isLength({ max: 50 }).withMessage('Last name cannot be more than 50 characters'),
   
   body('email')
+    .exists().withMessage('Email is required')
     .trim()
-    .notEmpty()
-    .withMessage('Email is required')
-    .isEmail()
-    .withMessage('Please provide a valid email'),
+    .notEmpty().withMessage('Email cannot be empty')
+    .isEmail().withMessage('Please provide a valid email')
+    .normalizeEmail(),
   
   body('password')
+    .exists().withMessage('Password is required')
     .trim()
-    .notEmpty()
-    .withMessage('Password is required')
-    .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long'),
+    .notEmpty().withMessage('Password cannot be empty')
+    .isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
   
   body('role')
-    .optional()
-    .isIn(Object.values(ROLES))
-    .withMessage('Invalid role specified')
+    .exists().withMessage('Role is required')
+    .notEmpty().withMessage('Role cannot be empty')
+    .custom(async (value) => {
+      if (!mongoose.Types.ObjectId.isValid(value)) {
+        throw new Error('Invalid role ID format');
+      }
+      
+      // Check if role exists in database
+      const role = await Role.findById(value);
+      if (!role) {
+        throw new Error('Role not found');
+      }
+      
+      return true;
+    })
 ];
 
 exports.loginValidation = [

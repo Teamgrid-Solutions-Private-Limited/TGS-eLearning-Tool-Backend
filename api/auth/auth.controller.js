@@ -10,38 +10,55 @@ const asyncHandler = require('../../middleware/asyncHandler');
 exports.register = asyncHandler(async (req, res, next) => {
   const { firstName, lastName, email, password, role } = req.body;
 
-  // Create user
-  const user = await User.create({
-    firstName,
-    lastName,
-    email,
-    password,
-    role
-  });
-
-  // Generate verification token
-  const verificationToken = user.getEmailVerificationToken();
-  await user.save();
-
-  // Create verification url
-  const verificationUrl = `${req.protocol}://${req.get('host')}/api/v1/auth/verifyemail/${verificationToken}`;
-
-  const message = `Please click on the link to verify your email: \n\n ${verificationUrl}`;
-
   try {
-    await sendEmail({
-      email: user.email,
-      subject: 'Email Verification',
-      message
+    // Create user
+    const user = await User.create({
+      firstName,
+      lastName,
+      email,
+      password,
+      role
     });
 
-    sendTokenResponse(user, 201, res);
-  } catch (err) {
-    user.verifyEmailToken = undefined;
-    user.verifyEmailExpire = undefined;
+    // Populate role information
+    await user.populate('role');
+
+    // Generate verification token
+    const verificationToken = user.getEmailVerificationToken();
     await user.save();
 
-    return next(new AppError('Email could not be sent', 500));
+    // Create verification url
+    const verificationUrl = `${req.protocol}://${req.get('host')}/api/v1/auth/verifyemail/${verificationToken}`;
+
+    const message = `Please click on the link to verify your email: \n\n ${verificationUrl}`;
+
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'Email Verification',
+        message
+      });
+
+      // Send response without waiting for email
+      sendTokenResponse(user, 201, res);
+    } catch (err) {
+      // If email fails, log it but don't fail the registration
+      console.error('Email sending failed:', err);
+      
+      // Clear the verification tokens
+      user.verifyEmailToken = undefined;
+      user.verifyEmailExpire = undefined;
+      await user.save({ validateBeforeSave: false });
+
+      // Still send success response but with a warning
+      res.status(201).json({
+        success: true,
+        message: 'Registration successful but verification email could not be sent. Please contact support.',
+        token: user.getSignedJwtToken()
+      });
+    }
+  } catch (error) {
+    return next(new AppError(error.message, 400));
   }
 });
 
@@ -92,7 +109,7 @@ exports.logout = asyncHandler(async (req, res, next) => {
 // @route   GET /api/v1/auth/me
 // @access  Private
 exports.getMe = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.user.id);
+  const user = await User.findById(req.user.id).populate('role');
 
   res.status(200).json({
     success: true,
