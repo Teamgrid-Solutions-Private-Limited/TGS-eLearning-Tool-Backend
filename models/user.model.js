@@ -38,8 +38,24 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Please add a role']
   },
   organization: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'Organization'
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Organization',
+    required: [true, 'Please specify an organization'],
+    index: true // Add index for better query performance
+  },
+  position: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'Position cannot be more than 100 characters']
+  },
+  department: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'Department cannot be more than 100 characters']
+  },
+  isActive: {
+    type: Boolean,
+    default: true
   },
   isEmailVerified: {
     type: Boolean,
@@ -49,6 +65,9 @@ const userSchema = new mongoose.Schema({
   verifyEmailExpire: Date,
   resetPasswordToken: String,
   resetPasswordExpire: Date,
+  lastLogin: {
+    type: Date
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -58,6 +77,24 @@ const userSchema = new mongoose.Schema({
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
 });
+
+// Add compound index for organization and email
+userSchema.index({ organization: 1, email: 1 }, { unique: true });
+
+// Middleware to populate organization
+userSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'organization',
+    select: 'name type status'
+  });
+  next();
+});
+
+// Update last login time
+userSchema.methods.updateLastLogin = async function() {
+  this.lastLogin = Date.now();
+  await this.save({ validateBeforeSave: false });
+};
 
 // Encrypt password using bcrypt
 userSchema.pre('save', async function(next) {

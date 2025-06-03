@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const { AppError } = require('../../middleware/errorHandler');
 const User = require('../../models/user.model');
+const Organization = require('../../models/organization.model');
 const sendEmail = require('../../services/email.service');
 const asyncHandler = require('../../middleware/asyncHandler');
 
@@ -8,20 +9,38 @@ const asyncHandler = require('../../middleware/asyncHandler');
 // @route   POST /api/v1/auth/register
 // @access  Public
 exports.register = asyncHandler(async (req, res, next) => {
-  const { firstName, lastName, email, password, role } = req.body;
+  const { firstName, lastName, email, password, role, organization, position, department } = req.body;
 
   try {
+    // Check if organization exists and is active
+    const org = await Organization.findById(organization);
+    if (!org) {
+      return next(new AppError('Organization not found', 404));
+    }
+    if (!org.isActive) {
+      return next(new AppError('Organization is not active', 400));
+    }
+
+    // Check if email is unique within the organization
+    const existingUser = await User.findOne({ email, organization });
+    if (existingUser) {
+      return next(new AppError('Email already exists in this organization', 400));
+    }
+
     // Create user
     const user = await User.create({
       firstName,
       lastName,
       email,
       password,
-      role
+      role,
+      organization,
+      position,
+      department
     });
 
-    // Populate role information
-    await user.populate('role');
+    // Populate role and organization information
+    await user.populate(['role', 'organization']);
 
     // Generate verification token
     const verificationToken = user.getEmailVerificationToken();
@@ -50,11 +69,26 @@ exports.register = asyncHandler(async (req, res, next) => {
       user.verifyEmailExpire = undefined;
       await user.save({ validateBeforeSave: false });
 
+      // Create user response object without sensitive data
+      const userResponse = {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        organization: user.organization,
+        position: user.position,
+        department: user.department,
+        isEmailVerified: user.isEmailVerified,
+        createdAt: user.createdAt
+      };
+
       // Still send success response but with a warning
       res.status(201).json({
         success: true,
         message: 'Registration successful but verification email could not be sent. Please contact support.',
-        token: user.getSignedJwtToken()
+        token: user.getSignedJwtToken(),
+        data: userResponse
       });
     }
   } catch (error) {
@@ -74,10 +108,22 @@ exports.login = asyncHandler(async (req, res, next) => {
   }
 
   // Check for user
-  const user = await User.findOne({ email }).select('+password');
+  const user = await User.findOne({ email })
+    .select('+password')
+    .populate(['role', 'organization']);
 
   if (!user) {
     return next(new AppError('Invalid credentials', 401));
+  }
+
+  // Check if organization is active
+  if (!user.organization.isActive) {
+    return next(new AppError('Your organization is not active. Please contact support.', 401));
+  }
+
+  // Check if user is active
+  if (!user.isActive) {
+    return next(new AppError('Your account is not active. Please contact support.', 401));
   }
 
   // Check if password matches
@@ -86,6 +132,9 @@ exports.login = asyncHandler(async (req, res, next) => {
   if (!isMatch) {
     return next(new AppError('Invalid credentials', 401));
   }
+
+  // Update last login time
+  await user.updateLastLogin();
 
   sendTokenResponse(user, 200, res);
 });
@@ -244,11 +293,27 @@ const sendTokenResponse = (user, statusCode, res) => {
     options.secure = true;
   }
 
+  // Create user response object without sensitive data
+  const userResponse = {
+    id: user._id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    role: user.role,
+    organization: user.organization,
+    position: user.position,
+    department: user.department,
+    isEmailVerified: user.isEmailVerified,
+    createdAt: user.createdAt
+  };
+
   res
     .status(statusCode)
     .cookie('token', token, options)
     .json({
       success: true,
-      token
+      message: 'User registered successfully',
+      token,
+      data: userResponse
     });
 }; 

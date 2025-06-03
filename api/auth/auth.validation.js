@@ -1,5 +1,6 @@
 const { body } = require('express-validator');
 const mongoose = require('mongoose');
+const Organization = require('../../models/organization.model');
 const { ROLES } = require('../../config/constants');
 const Role = require('../../models/role.model');
 
@@ -44,7 +45,37 @@ exports.registerValidation = [
       }
       
       return true;
-    })
+    }),
+
+  body('organization')
+    .exists().withMessage('Organization is required')
+    .notEmpty().withMessage('Organization cannot be empty')
+    .custom(async (value) => {
+      if (!mongoose.Types.ObjectId.isValid(value)) {
+        throw new Error('Invalid organization ID format');
+      }
+      
+      // Check if organization exists and is active
+      const organization = await Organization.findById(value);
+      if (!organization) {
+        throw new Error('Organization not found');
+      }
+      if (!organization.isActive) {
+        throw new Error('Organization is not active');
+      }
+      
+      return true;
+    }),
+
+  body('position')
+    .optional()
+    .trim()
+    .isLength({ max: 100 }).withMessage('Position cannot be more than 100 characters'),
+
+  body('department')
+    .optional()
+    .trim()
+    .isLength({ max: 100 }).withMessage('Department cannot be more than 100 characters')
 ];
 
 exports.loginValidation = [
