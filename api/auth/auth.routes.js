@@ -1,5 +1,7 @@
 const express = require('express');
 const { protect } = require('../../middleware/auth');
+const validateRequest = require('../../middleware/validateRequest');
+const { registerValidation } = require('./auth.validation');
 const {
   register,
   login,
@@ -10,10 +12,28 @@ const {
   updatePassword,
   verifyEmail
 } = require('./auth.controller');
+const Role = require('../../models/role.model');
 
 const router = express.Router();
 
-router.post('/register', register);
+// Add route to get available roles
+router.get('/roles', async (req, res) => {
+  try {
+    const roles = await Role.find().select('_id name description');
+    res.status(200).json({
+      success: true,
+      data: roles
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Error fetching roles'
+    });
+  }
+});
+
+// Apply validation middleware to register route
+router.post('/register', validateRequest(registerValidation), register);
 router.post('/login', login);
 router.post('/logout', logout);
 router.get('/me', protect, getMe);

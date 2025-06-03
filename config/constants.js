@@ -1,8 +1,9 @@
 module.exports = {
-  // User roles
-  ROLES: {
+  // Default role types (used for seeding and validation)
+  DEFAULT_ROLES: {
     ADMIN: 'admin',
     INSTRUCTOR: 'instructor',
+    AUTHOR: 'author',
     STUDENT: 'student'
   },
 
