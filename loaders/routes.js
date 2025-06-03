@@ -1,7 +1,8 @@
 const express = require('express');
 const authRoutes = require('../api/auth/auth.routes');
-const courseRoutes = require('../api/courses/courses.routes');
+const { courseRoutes } = require('../api/course');
 const organizationRoutes = require('../api/organization/organization.routes');
+
 module.exports = (app) => {
   // API Routes
   const router = express.Router();

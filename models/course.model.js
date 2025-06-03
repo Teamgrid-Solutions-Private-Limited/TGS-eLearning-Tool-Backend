@@ -1,126 +1,168 @@
 const mongoose = require('mongoose');
 const { COURSE_STATUS } = require('../config/constants');
 
-const lessonSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: [true, 'Please add a lesson title'],
-    trim: true,
-    maxlength: [200, 'Lesson title cannot be more than 200 characters']
-  },
-  description: {
-    type: String,
-    required: [true, 'Please add a lesson description']
-  },
-  content: {
-    type: String,
-    required: [true, 'Please add lesson content']
-  },
-  duration: {
-    type: Number,
-    required: [true, 'Please add lesson duration in minutes']
-  },
-  order: {
-    type: Number,
-    required: true
-  },
-  resources: [{
-    title: String,
-    type: String,
-    url: String,
-    file: String
-  }],
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
-});
-
 const courseSchema = new mongoose.Schema({
+  organization: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Organization',
+    required: [true, 'Organization is required']
+  },
   title: {
     type: String,
-    required: [true, 'Please add a course title'],
+    required: [true, 'Course title is required'],
     trim: true,
-    maxlength: [200, 'Course title cannot be more than 200 characters']
+    maxlength: [200, 'Title cannot be more than 200 characters']
   },
-  slug: {
+  subtitle: {
     type: String,
-    unique: true
+    trim: true,
+    maxlength: [500, 'Subtitle cannot be more than 500 characters']
   },
   description: {
     type: String,
-    required: [true, 'Please add a course description']
+    required: [true, 'Course description is required']
   },
-  thumbnail: {
+  category: {
     type: String,
-    default: 'no-photo.jpg'
+    required: [true, 'Category is required'],
+    trim: true
   },
-  status: {
+  difficulty: {
     type: String,
-    enum: Object.values(COURSE_STATUS),
-    default: COURSE_STATUS.DRAFT
+    required: [true, 'Difficulty level is required'],
+    enum: ['beginner', 'intermediate', 'advanced', 'expert']
   },
-  duration: {
-    type: Number,
-    required: [true, 'Please add course duration in minutes']
-  },
-  level: {
+  language: {
     type: String,
-    enum: ['beginner', 'intermediate', 'advanced'],
-    required: [true, 'Please add course level']
-  },
-  prerequisites: [{
-    type: String
-  }],
-  objectives: [{
-    type: String,
-    required: [true, 'Please add at least one learning objective']
-  }],
-  instructor: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  organization: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'Organization',
-    required: true
-  },
-  lessons: [lessonSchema],
-  enrolledStudents: [{
-    type: mongoose.Schema.ObjectId,
-    ref: 'User'
-  }],
-  ratings: [{
-    rating: {
-      type: Number,
-      min: 1,
-      max: 5,
-      required: true
-    },
-    review: String,
-    user: {
-      type: mongoose.Schema.ObjectId,
-      ref: 'User',
-      required: true
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now
-    }
-  }],
-  averageRating: {
-    type: Number,
-    min: [1, 'Rating must be at least 1'],
-    max: [5, 'Rating cannot be more than 5']
+    required: [true, 'Language is required'],
+    default: 'en'
   },
   tags: [{
     type: String,
     trim: true
   }],
-  createdAt: {
-    type: Date,
-    default: Date.now
+  metadata: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
+  },
+  // Authoring tool specific fields
+
+  sourceFile: {
+    type: String, // URL or path to the source file
+    trim: true
+  },
+  exportSettings: {
+    format: {
+      type: String,
+      enum: ['scorm1.2', 'scorm2004', 'xapi', 'aicc', 'cmi5'],
+      default: 'scorm2004'
+    },
+    version: String,
+    options: mongoose.Schema.Types.Mixed
+  },
+  // Learning objectives and outcomes
+  objectives: [{
+    type: String,
+    trim: true
+  }],
+  outcomes: [{
+    type: String,
+    trim: true
+  }],
+  // Course structure and content
+  structure: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'CourseStructure'
+  },
+  // Media and resources
+  thumbnail: {
+    type: String,
+    default: 'default-course-thumbnail.jpg'
+  },
+  previewVideo: String,
+  resources: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'MediaAsset'
+  }],
+  // Assessment and progress tracking
+  assessments: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Assessment'
+  }],
+  // Publishing settings
+  publishingProfile: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'PublishingProfile'
+  },
+  // Version control
+  version: {
+    type: Number,
+    default: 1
+  },
+  previousVersions: [{
+    version: Number,
+    publishedAt: Date,
+    changes: String,
+    sourceFile: String
+  }],
+  // Status and dates
+  status: {
+    type: String,
+    enum: Object.values(COURSE_STATUS),
+    default: COURSE_STATUS.DRAFT
+  },
+  publishedAt: Date,
+  // User tracking
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  updatedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  // Course settings
+  settings: {
+    isPublic: {
+      type: Boolean,
+      default: false
+    },
+    requiresEnrollment: {
+      type: Boolean,
+      default: true
+    },
+    allowGuestAccess: {
+      type: Boolean,
+      default: false
+    },
+    completionCriteria: {
+      type: {
+        type: String,
+        enum: ['all', 'percentage', 'assessment'],
+        default: 'all'
+      },
+      value: {
+        type: Number,
+        default: 100
+      }
+    }
+  },
+  // Analytics and tracking
+  analytics: {
+    totalEnrollments: {
+      type: Number,
+      default: 0
+    },
+    averageRating: {
+      type: Number,
+      default: 0
+    },
+    completionRate: {
+      type: Number,
+      default: 0
+    }
   }
 }, {
   timestamps: true,
@@ -128,49 +170,82 @@ const courseSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Create course slug from the title
-courseSchema.pre('save', function(next) {
-  this.slug = this.title
-    .toLowerCase()
-    .replace(/[^\w ]+/g, '')
-    .replace(/ +/g, '-');
+// Indexes
+courseSchema.index({ organization: 1, title: 1 }, { unique: true });
+courseSchema.index({ status: 1 });
+courseSchema.index({ tags: 1 });
+courseSchema.index({ category: 1 });
+
+// Virtual fields for related data
+courseSchema.virtual('lessons', {
+  ref: 'Lesson',
+  localField: '_id',
+  foreignField: 'course',
+  justOne: false
+});
+
+courseSchema.virtual('topics', {
+  ref: 'Topic',
+  localField: '_id',
+  foreignField: 'course',
+  justOne: false
+});
+
+courseSchema.virtual('progress', {
+  ref: 'Progress',
+  localField: '_id',
+  foreignField: 'course',
+  justOne: false
+});
+
+// Middleware to update version on content change
+courseSchema.pre('save', async function(next) {
+  if (this.isModified('content') || this.isModified('structure')) {
+    this.version += 1;
+  }
   next();
 });
 
-// Calculate average rating
-courseSchema.methods.getAverageRating = async function() {
-  const stats = await this.model('Course').aggregate([
-    {
-      $match: { _id: this._id }
-    },
-    {
-      $unwind: '$ratings'
-    },
-    {
-      $group: {
-        _id: '$_id',
-        averageRating: { $avg: '$ratings.rating' }
-      }
-    }
-  ]);
-
-  try {
-    await this.model('Course').findByIdAndUpdate(this._id, {
-      averageRating: stats[0]?.averageRating || 0
+// Methods
+courseSchema.methods.publish = async function() {
+  if (this.status === COURSE_STATUS.DRAFT) {
+    // Store current version info
+    this.previousVersions.push({
+      version: this.version,
+      publishedAt: new Date(),
+      sourceFile: this.sourceFile,
+      changes: 'Initial publication'
     });
-  } catch (err) {
-    console.error(err);
+
+    this.status = COURSE_STATUS.PUBLISHED;
+    this.publishedAt = new Date();
+    await this.save();
   }
 };
 
-// Call getAverageRating after save
-courseSchema.post('save', function() {
-  this.getAverageRating();
-});
+courseSchema.methods.archive = async function() {
+  this.status = COURSE_STATUS.ARCHIVED;
+  await this.save();
+};
 
-// Call getAverageRating before remove
-courseSchema.pre('remove', function() {
-  this.getAverageRating();
-});
+courseSchema.methods.duplicate = async function(newTitle) {
+  const Course = this.constructor;
+  const duplicatedCourse = new Course({
+    ...this.toObject(),
+    _id: undefined,
+    title: newTitle || `${this.title} (Copy)`,
+    status: COURSE_STATUS.DRAFT,
+    version: 1,
+    publishedAt: undefined,
+    previousVersions: [],
+    analytics: {
+      totalEnrollments: 0,
+      averageRating: 0,
+      completionRate: 0
+    }
+  });
+
+  return await duplicatedCourse.save();
+};
 
 module.exports = mongoose.model('Course', courseSchema); 

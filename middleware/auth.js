@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 const { AppError } = require('./errorHandler');
 const config = require('../config/env');
 const User = require('../models/user.model');
-const Role = require('../models/role.model');
 
 const protect = async (req, res, next) => {
   try {
@@ -21,20 +20,54 @@ const protect = async (req, res, next) => {
       // Verify token
       const decoded = jwt.verify(token, config.jwt.secret);
 
-      // Get user from token with populated role
-      const user = await User.findById(decoded.id).select('-password').populate('role');
+      // Debug logging
+      console.log('Token decoded:', decoded);
+
+      // Get user from token with populated role and organization
+      const user = await User.findById(decoded.id)
+        .select('-password')
+        .populate({
+          path: 'role',
+          select: 'name permissions'
+        })
+        .populate({
+          path: 'organization',
+          select: 'name type status'
+        });
+
+      // Debug logging
+      console.log('User found:', {
+        id: user?._id,
+        hasOrg: !!user?.organization,
+        orgId: user?.organization?._id,
+        roleName: user?.role?.name
+      });
 
       if (!user) {
         return next(new AppError('User not found', 401));
       }
 
+      if (!user.organization) {
+        return next(new AppError('User organization not found', 401));
+      }
+
       // Add user to request object
-      req.user = user;
+      req.user = {
+        id: user._id,
+        organization: user.organization,
+        role: user.role,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName
+      };
+      
       next();
     } catch (err) {
+      console.error('Auth error:', err);
       return next(new AppError('Not authorized to access this route', 401));
     }
   } catch (err) {
+    console.error('Protect middleware error:', err);
     next(err);
   }
 };
@@ -42,6 +75,10 @@ const protect = async (req, res, next) => {
 const authorize = (...roleNames) => {
   return async (req, res, next) => {
     try {
+      if (!req.user || !req.user.role || !req.user.role.name) {
+        return next(new AppError('User role not found', 403));
+      }
+
       // Get the user's role name
       const userRoleName = req.user.role.name;
       
@@ -50,6 +87,7 @@ const authorize = (...roleNames) => {
       }
       next();
     } catch (err) {
+      console.error('Authorization error:', err);
       return next(new AppError('Role authorization error', 500));
     }
   };
