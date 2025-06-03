@@ -1,0 +1,11 @@
+ 
+<?xml version="1.0" encoding="UTF-8"?>
+<tincan xmlns="http://projecttincan.com/tincan.xsd">
+  <activities>
+    <activity id="https://example.com/course/{{COURSE_ID}}">
+      <name>{{COURSE_TITLE}}</name>
+      <description xml:lang="en-US">{{COURSE_DESCRIPTION}}</description>
+    </activity>
+  </activities>
+  <launch>[index.html]</launch>
+</tincan>
