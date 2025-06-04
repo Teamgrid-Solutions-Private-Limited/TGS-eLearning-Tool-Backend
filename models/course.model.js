@@ -51,15 +51,7 @@ const courseSchema = new mongoose.Schema({
     type: String, // URL or path to the source file
     trim: true
   },
-  exportSettings: {
-    format: {
-      type: String,
-      enum: ['scorm1.2', 'scorm2004', 'xapi', 'aicc', 'cmi5'],
-      default: 'scorm2004'
-    },
-    version: String,
-    options: mongoose.Schema.Types.Mixed
-  },
+
   // Learning objectives and outcomes
   objectives: [{
     type: String,

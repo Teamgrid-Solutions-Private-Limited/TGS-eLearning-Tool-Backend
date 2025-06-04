@@ -19,7 +19,15 @@ const lessonSchema = new mongoose.Schema({
   thumbnailUrl: String,
   objectives: [{ 
     type: String 
-  }]
+  }],
+  prerequisites: {
+    type: Object,
+    default: {}
+  },
+  metadata: {
+    type: Object,
+    default: {}
+  }
 }, { 
   timestamps: true 
 });
