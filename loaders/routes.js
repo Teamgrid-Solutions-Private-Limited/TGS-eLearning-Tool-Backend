@@ -2,6 +2,7 @@ const express = require('express');
 const authRoutes = require('../api/auth/auth.routes');
 const { courseRoutes } = require('../api/course');
 const organizationRoutes = require('../api/organization/organization.routes');
+const exportRoutes = require('../routes/exportRoutes');
 
 module.exports = (app) => {
   // API Routes
@@ -12,6 +13,7 @@ module.exports = (app) => {
   router.use('/courses', courseRoutes);
   // Add other routes here as they are created
   router.use('/organizations', organizationRoutes);
+  router.use('/export', exportRoutes);
   // etc.
 
   // Mount router to /api/v1
