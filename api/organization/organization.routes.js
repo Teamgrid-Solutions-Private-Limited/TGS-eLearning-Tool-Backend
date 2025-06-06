@@ -10,7 +10,10 @@ const {
 } = require('./organization.controller');
 
 const router = express.Router();
-
+router.post(
+  '/',
+  createOrganization
+);
 // Protect all routes after this middleware
 router.use(protect);
 
@@ -21,7 +24,7 @@ router.get('/stats', authorize('admin'), getOrganizationStats);
 router
   .route('/')
   .get(getOrganizations)
-  .post(authorize('admin'), createOrganization);
+ 
 
 router
   .route('/:id')
