@@ -1,6 +1,6 @@
 const path          = require('path');
-const Course        = require('../models/course.model');
-const { buildXapiZip } = require('../utils/xapiZipBuilder');
+const Course        = require('../../models/course.model');
+const { buildXapiZip } = require('../../utils/xapiZipBuilder');
 
 exports.exportCourse = async (req, res, next) => {
   try {
