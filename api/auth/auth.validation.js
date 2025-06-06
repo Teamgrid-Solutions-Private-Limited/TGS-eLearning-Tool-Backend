@@ -75,7 +75,27 @@ exports.registerValidation = [
   body('department')
     .optional()
     .trim()
-    .isLength({ max: 100 }).withMessage('Department cannot be more than 100 characters')
+    .isLength({ max: 100 }).withMessage('Department cannot be more than 100 characters'),
+
+  body('termsAccepted')
+    .exists().withMessage('Terms acceptance is required')
+    .isBoolean().withMessage('Terms acceptance must be a boolean')
+    .custom((value) => {
+      if (!value) {
+        throw new Error('You must accept the terms and conditions');
+      }
+      return true;
+    }),
+
+  body('privacyPolicyAccepted')
+    .exists().withMessage('Privacy policy acceptance is required')
+    .isBoolean().withMessage('Privacy policy acceptance must be a boolean')
+    .custom((value) => {
+      if (!value) {
+        throw new Error('You must accept the privacy policy');
+      }
+      return true;
+    })
 ];
 
 exports.loginValidation = [
