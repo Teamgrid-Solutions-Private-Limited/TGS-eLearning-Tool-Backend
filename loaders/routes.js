@@ -6,6 +6,7 @@ const exportRoutes = require('../api/xapi/exportRoutes');
 const { lessonRoutes } = require('../api/lesson');
 const { courseStructureRoutes } = require('../api/course-structure');
 const contentItemRoutes = require('../api/content-item/content-item.routes');
+const xapiRoutes = require('../api/xapi/xapi.routes');
 
 module.exports = (app) => {
   // API Routes
@@ -20,6 +21,7 @@ module.exports = (app) => {
   // Add other routes here as they are created
   router.use('/organizations', organizationRoutes);
   router.use('/export', exportRoutes);
+  router.use('/xapi', xapiRoutes);
   // etc.
 
   // Mount router to /api/v1
