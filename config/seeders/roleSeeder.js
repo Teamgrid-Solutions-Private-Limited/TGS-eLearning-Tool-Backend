@@ -53,6 +53,37 @@ const seedRoles = async () => {
           grades: ['read'],
           // Add more permissions as needed
         }
+      },
+      {
+        name: DEFAULT_ROLES.EDITOR,
+        description: 'Can edit and manage content',
+        permissions: {
+          courses: ['read', 'update'],
+          lessons: ['read', 'update'],
+          content: ['read', 'update'],
+          media: ['read', 'update']
+        }
+      },
+      {
+        name: DEFAULT_ROLES.REVIEWER,
+        description: 'Reviews and approves content',
+        permissions: {
+          courses: ['read'],
+          lessons: ['read'],
+          content: ['read'],
+          media: ['read'],
+          reviews: ['create', 'read', 'update']
+        }
+      },
+      {
+        name: DEFAULT_ROLES.VIEWER,
+        description: 'View-only access to content',
+        permissions: {
+          courses: ['read'],
+          lessons: ['read'],
+          content: ['read'],
+          media: ['read']
+        }
       }
     ];
 
@@ -72,4 +103,4 @@ const seedRoles = async () => {
   }
 };
 
-module.exports = seedRoles; 
+module.exports = seedRoles;

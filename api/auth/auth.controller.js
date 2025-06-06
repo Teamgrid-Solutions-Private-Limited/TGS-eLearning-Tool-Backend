@@ -287,6 +287,101 @@ exports.verifyEmail = asyncHandler(async (req, res, next) => {
   });
 });
 
+// @desc    Invite team member
+// @route   POST /api/v1/auth/invite
+// @access  Private/Admin
+exports.inviteMember = asyncHandler(async (req, res, next) => {
+  const { email, role, position, department } = req.body;
+
+  try {
+    // Check if email already exists in organization
+    const existingUser = await User.findOne({ 
+      email, 
+      organization: req.user.organization._id 
+    });
+
+    if (existingUser) {
+      return next(new AppError('Email already exists in this organization', 400));
+    }
+
+    // Create user with pending status
+    const user = await User.create({
+      email,
+      role,
+      position,
+      department,
+      organization: req.user.organization._id,
+      invitedBy: req.user._id,
+      invitationStatus: 'pending',
+      isActive: true
+    });
+
+    // Generate invitation token
+    const invitationToken = user.getInvitationToken();
+    await user.save();
+
+    // Create invitation url
+    const invitationUrl = `${req.protocol}://${req.get('host')}/api/v1/auth/accept-invitation/${invitationToken}`;
+
+    const message = `You have been invited to join ${req.user.organization.name}. Please click on the link to complete your registration: \n\n ${invitationUrl}`;
+
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'Team Invitation',
+        message
+      });
+
+      res.status(200).json({
+        success: true,
+        message: 'Invitation sent successfully'
+      });
+    } catch (err) {
+      // If email fails, delete the user and return error
+      await User.findByIdAndDelete(user._id);
+      return next(new AppError('Could not send invitation email', 500));
+    }
+  } catch (error) {
+    return next(new AppError(error.message, 400));
+  }
+});
+
+// @desc    Accept invitation and complete registration
+// @route   POST /api/v1/auth/accept-invitation/:token
+// @access  Public
+exports.acceptInvitation = asyncHandler(async (req, res, next) => {
+  const { firstName, lastName, password } = req.body;
+
+  // Get hashed token
+  const invitationToken = crypto
+    .createHash('sha256')
+    .update(req.params.token)
+    .digest('hex');
+
+  const user = await User.findOne({
+    invitationToken,
+    invitationExpire: { $gt: Date.now() },
+    invitationStatus: 'pending'
+  });
+
+  if (!user) {
+    return next(new AppError('Invalid or expired invitation', 400));
+  }
+
+  // Update user information
+  user.firstName = firstName;
+  user.lastName = lastName;
+  user.password = password;
+  user.invitationStatus = 'accepted';
+  user.invitationToken = undefined;
+  user.invitationExpire = undefined;
+  user.isEmailVerified = true; // Auto-verify email since they received the invitation
+
+  await user.save();
+
+  sendTokenResponse(user, 200, res);
+});
+
 // Get token from model, create cookie and send response
 const sendTokenResponse = (user, statusCode, res) => {
   // Create token
@@ -328,4 +423,4 @@ const sendTokenResponse = (user, statusCode, res) => {
       token,
       data: userResponse
     });
-}; 
+};

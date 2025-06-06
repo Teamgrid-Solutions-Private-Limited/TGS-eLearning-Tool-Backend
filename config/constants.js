@@ -4,7 +4,10 @@ module.exports = {
     ADMIN: 'admin',
     INSTRUCTOR: 'instructor',
     AUTHOR: 'author',
-    STUDENT: 'student'
+    STUDENT: 'student',
+    EDITOR: 'editor',
+    REVIEWER: 'reviewer',
+    VIEWER: 'viewer'
   },
 
   // Course status
@@ -50,4 +53,4 @@ module.exports = {
     RESET_PASSWORD: 'reset_password',
     VERIFY_EMAIL: 'verify_email'
   }
-}; 
+};

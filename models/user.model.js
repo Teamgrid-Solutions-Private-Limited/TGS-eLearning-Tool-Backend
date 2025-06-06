@@ -84,6 +84,17 @@ const userSchema = new mongoose.Schema({
   lastLogin: {
     type: Date
   },
+  invitationStatus: {
+    type: String,
+    enum: ['pending', 'accepted', 'expired'],
+    default: 'pending'
+  },
+  invitedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  invitationToken: String,
+  invitationExpire: Date,
   createdAt: {
     type: Date,
     default: Date.now
@@ -168,4 +179,21 @@ userSchema.methods.getResetPasswordToken = function() {
   return resetToken;
 };
 
-module.exports = mongoose.model('User', userSchema); 
+// Generate and hash invitation token
+userSchema.methods.getInvitationToken = function() {
+  // Generate token
+  const invitationToken = crypto.randomBytes(20).toString('hex');
+
+  // Hash token and set to invitationToken field
+  this.invitationToken = crypto
+    .createHash('sha256')
+    .update(invitationToken)
+    .digest('hex');
+
+  // Set expire
+  this.invitationExpire = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
+
+  return invitationToken;
+};
+
+module.exports = mongoose.model('User', userSchema);

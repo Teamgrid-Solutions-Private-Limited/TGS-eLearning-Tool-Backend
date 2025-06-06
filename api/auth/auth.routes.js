@@ -1,7 +1,11 @@
 const express = require('express');
-const { protect } = require('../../middleware/auth');
+const { protect, authorize } = require('../../middleware/auth');
 const validateRequest = require('../../middleware/validateRequest');
-const { registerValidation } = require('./auth.validation');
+const { 
+  registerValidation, 
+  inviteValidation, 
+  acceptInviteValidation 
+} = require('./auth.validation');
 const {
   register,
   login,
@@ -10,7 +14,9 @@ const {
   forgotPassword,
   resetPassword,
   updatePassword,
-  verifyEmail
+  verifyEmail,
+  inviteMember,
+  acceptInvitation
 } = require('./auth.controller');
 const Role = require('../../models/role.model');
 
@@ -42,4 +48,19 @@ router.put('/resetpassword/:resettoken', resetPassword);
 router.put('/updatepassword', protect, updatePassword);
 router.get('/verifyemail/:token', verifyEmail);
 
-module.exports = router; 
+// Protected routes for team member management
+router.post(
+  '/invite',
+  protect,
+  authorize('admin'),
+  validateRequest(inviteValidation),
+  inviteMember
+);
+
+router.post(
+  '/accept-invitation/:token',
+  validateRequest(acceptInviteValidation),
+  acceptInvitation
+);
+
+module.exports = router;

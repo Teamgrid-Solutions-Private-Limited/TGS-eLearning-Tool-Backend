@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const Organization = require('../../models/organization.model');
 const { ROLES } = require('../../config/constants');
 const Role = require('../../models/role.model');
+const Joi = require('joi');
 
 exports.registerValidation = [
   body('firstName')
@@ -142,4 +143,21 @@ exports.resetPasswordValidation = [
     .withMessage('Password is required')
     .isLength({ min: 6 })
     .withMessage('Password must be at least 6 characters long')
-]; 
+];
+
+exports.inviteValidation = {
+  body: Joi.object({
+    email: Joi.string().email().required(),
+    role: Joi.string().required(),
+    position: Joi.string(),
+    department: Joi.string()
+  })
+};
+
+exports.acceptInviteValidation = {
+  body: Joi.object({
+    firstName: Joi.string().required().max(50),
+    lastName: Joi.string().required().max(50),
+    password: Joi.string().required().min(6)
+  })
+};
