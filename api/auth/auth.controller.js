@@ -9,7 +9,7 @@ const asyncHandler = require('../../middleware/asyncHandler');
 // @route   POST /api/v1/auth/register
 // @access  Public
 exports.register = asyncHandler(async (req, res, next) => {
-  const { firstName, lastName, email, password, role, organization, position, department } = req.body;
+  const { firstName, lastName, email, password, role, organization, position, department, termsAccepted, privacyPolicyAccepted } = req.body;
 
   try {
     // Check if organization exists and is active
@@ -27,7 +27,7 @@ exports.register = asyncHandler(async (req, res, next) => {
       return next(new AppError('Email already exists in this organization', 400));
     }
 
-    // Create user
+    // Create user with terms and privacy policy acceptance timestamps
     const user = await User.create({
       firstName,
       lastName,
@@ -36,7 +36,11 @@ exports.register = asyncHandler(async (req, res, next) => {
       role,
       organization,
       position,
-      department
+      department,
+      termsAccepted,
+      privacyPolicyAccepted,
+      termsAcceptedAt: termsAccepted ? Date.now() : null,
+      privacyPolicyAcceptedAt: privacyPolicyAccepted ? Date.now() : null
     });
 
     // Populate role and organization information
@@ -80,6 +84,10 @@ exports.register = asyncHandler(async (req, res, next) => {
         position: user.position,
         department: user.department,
         isEmailVerified: user.isEmailVerified,
+        termsAccepted: user.termsAccepted,
+        privacyPolicyAccepted: user.privacyPolicyAccepted,
+        termsAcceptedAt: user.termsAcceptedAt,
+        privacyPolicyAcceptedAt: user.privacyPolicyAcceptedAt,
         createdAt: user.createdAt
       };
 
@@ -304,6 +312,10 @@ const sendTokenResponse = (user, statusCode, res) => {
     position: user.position,
     department: user.department,
     isEmailVerified: user.isEmailVerified,
+    termsAccepted: user.termsAccepted,
+    privacyPolicyAccepted: user.privacyPolicyAccepted,
+    termsAcceptedAt: user.termsAcceptedAt,
+    privacyPolicyAcceptedAt: user.privacyPolicyAcceptedAt,
     createdAt: user.createdAt
   };
 

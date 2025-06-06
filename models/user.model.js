@@ -53,6 +53,22 @@ const userSchema = new mongoose.Schema({
     trim: true,
     maxlength: [100, 'Department cannot be more than 100 characters']
   },
+  termsAccepted: {
+    type: Boolean,
+    required: [true, 'Terms and conditions acceptance is required'],
+    default: false
+  },
+  privacyPolicyAccepted: {
+    type: Boolean,
+    required: [true, 'Privacy policy acceptance is required'],
+    default: false
+  },
+  termsAcceptedAt: {
+    type: Date
+  },
+  privacyPolicyAcceptedAt: {
+    type: Date
+  },
   isActive: {
     type: Boolean,
     default: true
