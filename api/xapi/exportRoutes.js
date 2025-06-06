@@ -1,5 +1,5 @@
 const express          = require('express');
-const exportController = require('../controllers/exportController');
+const exportController = require('../xapi/exportController');
 // const auth             = require('../middleware/authMiddleware');
 // const tenant           = require('../middleware/tenantMiddleware');
 

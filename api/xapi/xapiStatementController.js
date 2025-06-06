@@ -1,4 +1,4 @@
-const XapiStatement = require('../models/XapiStatement');
+const XapiStatement = require('../../models/xapi-statement.model');
 
 exports.createXapiStatement = async (req, res) => {
   try {
