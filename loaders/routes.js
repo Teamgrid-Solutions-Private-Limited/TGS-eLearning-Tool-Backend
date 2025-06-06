@@ -4,6 +4,8 @@ const { courseRoutes } = require('../api/course');
 const organizationRoutes = require('../api/organization/organization.routes');
 const exportRoutes = require('../api/xapi/exportRoutes');
 const { lessonRoutes } = require('../api/lesson');
+const { courseStructureRoutes } = require('../api/course-structure');
+const contentItemRoutes = require('../api/content-item/content-item.routes');
 
 module.exports = (app) => {
   // API Routes
@@ -13,6 +15,8 @@ module.exports = (app) => {
   router.use('/auth', authRoutes);
   router.use('/courses', courseRoutes);
   router.use('/lessons', lessonRoutes);
+  router.use('/course-structures', courseStructureRoutes);
+  router.use('/content-items', contentItemRoutes);
   // Add other routes here as they are created
   router.use('/organizations', organizationRoutes);
   router.use('/export', exportRoutes);
