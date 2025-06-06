@@ -1,20 +1,20 @@
 const mongoose = require('mongoose');
 
 const xapiStatementSchema = new mongoose.Schema({
-  organization: { 
+  organizationId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Organization', 
     required: true 
   },
-  user: { 
+  userId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User' 
   },
-  course: { 
+  courseId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Course' 
   },
-  lesson: { 
+  lessonId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Lesson' 
   },
