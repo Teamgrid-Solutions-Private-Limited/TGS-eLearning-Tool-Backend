@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const progressController = require('../controllers/progress.controller');
-const { protect } = require('../middleware/auth.middleware');
+const progressController = require('./progress.controller');
+const { protect } = require('../../middleware/auth.middleware');
 
 // All routes are protected and require authentication
 router.use(protect);
