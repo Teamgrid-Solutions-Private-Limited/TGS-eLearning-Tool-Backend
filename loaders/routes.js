@@ -22,6 +22,7 @@ module.exports = (app) => {
   router.use('/organizations', organizationRoutes);
   router.use('/export', exportRoutes);
   router.use('/xapi', xapiRoutes);
+  router.use('/progress', progressRoutes);
   // etc.
 
   // Mount router to /api/v1
