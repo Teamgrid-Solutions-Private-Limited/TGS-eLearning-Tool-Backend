@@ -1,15 +1,12 @@
 const { validationResult } = require('express-validator');
 const { AppError } = require('./errorHandler');
 
-const validateRequest = (validations) => {
+const validateRequest = () => {
   return async (req, res, next) => {
     try {
       // Log the incoming request body
       console.log('Incoming request body:', req.body);
       
-      // Run all validations
-      await Promise.all(validations.map(validation => validation.run(req)));
-
       const errors = validationResult(req);
       if (errors.isEmpty()) {
         return next();

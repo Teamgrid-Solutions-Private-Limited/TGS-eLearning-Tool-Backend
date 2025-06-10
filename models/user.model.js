@@ -106,13 +106,11 @@ const userSchema = new mongoose.Schema({
 });
 
 // Add compound index for organization and email
-userSchema.index({ organization: 1, email: 1 }, { unique: true });
-
-// Middleware to populate organization
+userSchema.index({ organization: 1, email: 1 }, { unique: true });  // Middleware to populate organization
 userSchema.pre(/^find/, function(next) {
   this.populate({
     path: 'organization',
-    select: 'name type status'
+    select: 'name type status isActive'
   });
   next();
 });
