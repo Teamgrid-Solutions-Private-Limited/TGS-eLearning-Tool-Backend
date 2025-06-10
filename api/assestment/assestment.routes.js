@@ -6,7 +6,7 @@ const { protect, authorize } = require('../middleware/auth');
 // Protect all routes
 router.use(protect);
 
-// Routes for assessment management
+// Basic CRUD operations
 router
   .route('/')
   .get(authorize('admin', 'instructor', 'student'), assessmentController.getAllAssessments)
@@ -18,19 +18,11 @@ router
   .put(authorize('admin', 'instructor'), assessmentController.updateAssessment)
   .delete(authorize('admin', 'instructor'), assessmentController.deleteAssessment);
 
-// Routes for course-specific assessments
-router
-  .route('/course/:courseId')
-  .get(authorize('admin', 'instructor', 'student'), assessmentController.getAssessmentsByCourse);
+// Assessment submission
+router.post('/:id/submit', authorize('admin', 'instructor', 'student'), assessmentController.submitAssessment);
 
-// Routes for lesson-specific assessments
-router
-  .route('/lesson/:lessonId')
-  .get(authorize('admin', 'instructor', 'student'), assessmentController.getAssessmentsByLesson);
-
-// Route for submitting assessment answers
-router
-  .route('/:id/submit')
-  .post(authorize('admin', 'instructor', 'student'), assessmentController.submitAssessment);
+// Filter assessments
+router.get('/course/:courseId', authorize('admin', 'instructor', 'student'), assessmentController.getAssessmentsByCourse);
+router.get('/lesson/:lessonId', authorize('admin', 'instructor', 'student'), assessmentController.getAssessmentsByLesson);
 
 module.exports = router; 
