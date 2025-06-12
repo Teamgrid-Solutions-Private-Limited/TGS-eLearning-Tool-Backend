@@ -1,4 +1,4 @@
-const Assessment = require('../models/assessment.model');
+const Assessment = require('../../models/assessment.model');
 const mongoose = require('mongoose');
 
 class AssessmentController {

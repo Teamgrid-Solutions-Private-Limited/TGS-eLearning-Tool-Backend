@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const submissionController = require('../controllers/submission.controller');
-const authenticate = require('../middleware/auth'); // your auth middleware
+const submissionController = require('../submission/submission.controller');
+const authenticate = require('../../middleware/auth'); // your auth middleware
 
 router.post(
   '/submit/:assessmentId',

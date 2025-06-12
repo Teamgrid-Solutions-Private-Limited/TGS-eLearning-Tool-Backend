@@ -1,6 +1,6 @@
-const Assessment = require('../models/assessment.model');
-const Submission = require('../models/submission.model');
-const { sendAnsweredStatement, sendCompletedStatement } = require('../services/xapiService');
+const Assessment = require('../../models/assessment.model');
+const Submission = require('../../models/submission.model');
+// const { sendAnsweredStatement, sendCompletedStatement } = require('../services/xapiService');
 
 class SubmissionController {
   async submitAssessment(req, res) {

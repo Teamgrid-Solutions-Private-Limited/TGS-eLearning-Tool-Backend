@@ -29,10 +29,9 @@ const assessmentSchema = new mongoose.Schema({
     type: Number, 
     default: 1 
   },
-  questions: {
-    type: [questionSchema],
+  questions: { 
+    type: mongoose.Schema.Types.Mixed,
     required: true,
-    validate: [q => q.length > 0, 'At least one question is required.']
   },
   settings: { 
     type: mongoose.Schema.Types.Mixed, 

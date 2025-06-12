@@ -9,7 +9,7 @@ const contentItemRoutes = require('../api/content-item/content-item.routes');
 const xapiRoutes = require('../api/xapi/xapi.routes');
 const progressRoutes = require('../api/progress/progress.routes');
 const assestmentRoutes = require('../api/assestment/assestment.routes');
-const submissionRoutes = require('../api/submission/submissio.routes');
+// const submissionRoutes = require('../api/submission/submissio.routes');
 module.exports = (app) => {
   // API Routes
   const router = express.Router();
@@ -26,7 +26,7 @@ module.exports = (app) => {
   router.use('/xapi', xapiRoutes);
   router.use('/progress', progressRoutes);
   router.use('/assestment', assestmentRoutes);
-  router.use('/submission',submissionRoutes);
+  // router.use('/submission',submissionRoutes);
 
   // etc.
 

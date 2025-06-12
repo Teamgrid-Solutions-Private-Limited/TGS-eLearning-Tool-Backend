@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const assessmentController = require('./assessment.controller');
-const { protect, authorize } = require('../middleware/auth');
+const assessmentController = require('../assestment/assestment.controller');
+const { protect, authorize } = require('../../middleware/auth');
 
 // Protect all routes
 router.use(protect);
