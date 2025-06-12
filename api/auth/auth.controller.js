@@ -141,6 +141,37 @@ exports.login = asyncHandler(async (req, res, next) => {
     return next(new AppError('Invalid credentials', 401));
   }
 
+  // Check if email is verified
+  if (!user.isEmailVerified) {
+    // Generate new verification token
+    const verificationToken = user.getEmailVerificationToken();
+    await user.save({ validateBeforeSave: false });
+
+    // Create verification url
+    const verificationUrl = `${req.protocol}://${req.get('host')}/api/v1/auth/verifyemail/${verificationToken}`;
+
+    try {
+      // Send verification email
+      await sendEmail({
+        email: user.email,
+        subject: 'Email Verification Required',
+        message: `Your email is not verified. Please click on the link to verify your email: \n\n ${verificationUrl}`
+      });
+
+      return next(new AppError('Your email is not verified. A new verification link has been sent to your email.', 403));
+    } catch (err) {
+      // If email fails, log it but still tell user they need to verify
+      console.error('Email sending failed:', err);
+      
+      // Clear the verification tokens
+      user.verifyEmailToken = undefined;
+      user.verifyEmailExpire = undefined;
+      await user.save({ validateBeforeSave: false });
+
+      return next(new AppError('Your email is not verified. Please contact support for assistance.', 403));
+    }
+  }
+
   // Update last login time
   await user.updateLastLogin();
 
@@ -272,7 +303,40 @@ exports.verifyEmail = asyncHandler(async (req, res, next) => {
   });
 
   if (!user) {
-    return next(new AppError('Invalid token', 400));
+    // Check if token exists but is expired
+    const expiredUser = await User.findOne({
+      verifyEmailToken
+    });
+
+    if (expiredUser) {
+      // Generate new verification token
+      const newVerificationToken = expiredUser.getEmailVerificationToken();
+      await expiredUser.save({ validateBeforeSave: false });
+
+      // Create verification url
+      const verificationUrl = `${req.protocol}://${req.get('host')}/api/v1/auth/verifyemail/${newVerificationToken}`;
+
+      try {
+        await sendEmail({
+          email: expiredUser.email,
+          subject: 'New Email Verification Link',
+          message: `Your previous verification link has expired. Please use this new link to verify your email: \n\n ${verificationUrl}`
+        });
+
+        return res.status(400).json({
+          success: false,
+          message: 'Verification link expired. A new verification link has been sent to your email.'
+        });
+      } catch (err) {
+        expiredUser.verifyEmailToken = undefined;
+        expiredUser.verifyEmailExpire = undefined;
+        await expiredUser.save({ validateBeforeSave: false });
+
+        return next(new AppError('Verification link expired and could not send a new one. Please request a new verification link.', 400));
+      }
+    }
+
+    return next(new AppError('Invalid verification token', 400));
   }
 
   user.isEmailVerified = true;
@@ -380,6 +444,103 @@ exports.acceptInvitation = asyncHandler(async (req, res, next) => {
   await user.save();
 
   sendTokenResponse(user, 200, res);
+});
+
+// @desc    Resend verification email
+// @route   POST /api/v1/auth/resend-verification
+// @access  Public
+exports.resendVerificationEmail = asyncHandler(async (req, res, next) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return next(new AppError('Please provide an email', 400));
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return next(new AppError('There is no user with that email', 404));
+  }
+
+  if (user.isEmailVerified) {
+    return next(new AppError('Email is already verified', 400));
+  }
+
+  // Generate verification token
+  const verificationToken = user.getEmailVerificationToken();
+  await user.save({ validateBeforeSave: false });
+
+  // Create verification url
+  const verificationUrl = `${req.protocol}://${req.get('host')}/api/v1/auth/verifyemail/${verificationToken}`;
+
+  const message = `Please click on the link to verify your email: \n\n ${verificationUrl}`;
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: 'Email Verification',
+      message
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Verification email sent'
+    });
+  } catch (err) {
+    user.verifyEmailToken = undefined;
+    user.verifyEmailExpire = undefined;
+
+    await user.save({ validateBeforeSave: false });
+
+    return next(new AppError('Email could not be sent', 500));
+  }
+});
+
+// @desc    Admin verify user email
+// @route   PUT /api/v1/auth/admin-verify-email/:userId
+// @access  Private/Admin
+exports.adminVerifyEmail = asyncHandler(async (req, res, next) => {
+  const userId = req.params.userId;
+
+  // Only allow admins to verify other users in their organization
+  const user = await User.findOne({
+    _id: userId,
+    organization: req.user.organization._id
+  });
+
+  if (!user) {
+    return next(new AppError('User not found or not in your organization', 404));
+  }
+
+  // Update user verification status
+  user.isEmailVerified = true;
+  user.verifyEmailToken = undefined;
+  user.verifyEmailExpire = undefined;
+
+  await user.save({ validateBeforeSave: false });
+
+  res.status(200).json({
+    success: true,
+    message: `Email for user ${user.email} has been verified by admin`
+  });
+});
+
+// @desc    Check email verification status
+// @route   GET /api/v1/auth/verification-status
+// @access  Private
+exports.checkVerificationStatus = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user.id);
+
+  if (!user) {
+    return next(new AppError('User not found', 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    data: {
+      isEmailVerified: user.isEmailVerified
+    }
+  });
 });
 
 // Get token from model, create cookie and send response

@@ -6,6 +6,11 @@ const assessmentSchema = new mongoose.Schema({
     ref: 'Lesson', 
     required: true 
   },
+  courseStructure: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'CourseStructure',
+    required: true
+  },
   course: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Course', 
@@ -29,11 +34,17 @@ const assessmentSchema = new mongoose.Schema({
     type: Number, 
     default: 1 
   },
-  questions: {
-    type: [questionSchema],
-    required: true,
-    validate: [q => q.length > 0, 'At least one question is required.']
-  },
+  questions: [{
+    question: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Question',
+      required: true
+    },
+    weight: {
+      type: Number,
+      default: 1
+    }
+  }],
   settings: { 
     type: mongoose.Schema.Types.Mixed, 
     default: {} 

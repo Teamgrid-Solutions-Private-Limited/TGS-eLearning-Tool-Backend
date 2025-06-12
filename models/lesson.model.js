@@ -6,6 +6,11 @@ const lessonSchema = new mongoose.Schema({
     ref: 'Course', 
     required: true 
   },
+  courseStructure: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'CourseStructure',
+    required: true
+  },
   title: { 
     type: String, 
     required: true 

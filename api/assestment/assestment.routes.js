@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const assessmentController = require('./assessment.controller');
-const { protect, authorize } = require('../middleware/auth');
+const assessmentController = require('./assestment.controller');
+const { protect, authorize } = require('../../middleware/auth');
 
 // Protect all routes
 router.use(protect);
@@ -24,5 +24,10 @@ router.post('/:id/submit', authorize('admin', 'instructor', 'student'), assessme
 // Filter assessments
 router.get('/course/:courseId', authorize('admin', 'instructor', 'student'), assessmentController.getAssessmentsByCourse);
 router.get('/lesson/:lessonId', authorize('admin', 'instructor', 'student'), assessmentController.getAssessmentsByLesson);
+router.get('/structure/:courseStructureId', authorize('admin', 'instructor', 'student'), assessmentController.getAssessmentsByCourseStructure);
+
+// Question management in assessments
+router.post('/:id/questions', authorize('admin', 'instructor'), assessmentController.addQuestionToAssessment);
+router.delete('/:id/questions/:questionItemId', authorize('admin', 'instructor'), assessmentController.removeQuestionFromAssessment);
 
 module.exports = router; 

@@ -6,7 +6,22 @@ const { AppError } = require('../../middleware/errorHandler');
 // @route   GET /api/v1/content-items
 // @access  Private
 exports.getContentItems = asyncHandler(async (req, res, next) => {
-  const contentItems = await ContentItem.find().populate('lessonId');
+  let query = {};
+  
+  // Filter by lessonId if provided
+  if (req.query.lessonId) {
+    query.lessonId = req.query.lessonId;
+  }
+  
+  const contentItems = await ContentItem.find(query)
+    .populate({
+      path: 'lessonId',
+      select: 'title sequence courseStructure course',
+      populate: [
+        { path: 'courseStructure', select: 'title sequence' },
+        { path: 'course', select: 'title' }
+      ]
+    });
   
   res.status(200).json({
     success: true,
@@ -19,7 +34,15 @@ exports.getContentItems = asyncHandler(async (req, res, next) => {
 // @route   GET /api/v1/content-items/:id
 // @access  Private
 exports.getContentItem = asyncHandler(async (req, res, next) => {
-  const contentItem = await ContentItem.findById(req.params.id).populate('lessonId');
+  const contentItem = await ContentItem.findById(req.params.id)
+    .populate({
+      path: 'lessonId',
+      select: 'title sequence courseStructure course',
+      populate: [
+        { path: 'courseStructure', select: 'title sequence' },
+        { path: 'course', select: 'title' }
+      ]
+    });
   
   if (!contentItem) {
     return next(new AppError(`Content item not found with id of ${req.params.id}`, 404));
@@ -56,6 +79,13 @@ exports.updateContentItem = asyncHandler(async (req, res, next) => {
   contentItem = await ContentItem.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true
+  }).populate({
+    path: 'lessonId',
+    select: 'title sequence courseStructure course',
+    populate: [
+      { path: 'courseStructure', select: 'title sequence' },
+      { path: 'course', select: 'title' }
+    ]
   });
 
   res.status(200).json({

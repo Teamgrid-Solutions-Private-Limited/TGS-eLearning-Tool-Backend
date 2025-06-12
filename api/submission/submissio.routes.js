@@ -1,24 +1,41 @@
 const express = require('express');
 const router = express.Router();
-const submissionController = require('../controllers/submission.controller');
-const authenticate = require('../middleware/auth'); // your auth middleware
+const submissionController = require('./submission.controller');
+const { protect, authorize } = require('../../middleware/auth');
 
+// Protect all routes
+router.use(protect);
+
+// Submit an assessment
 router.post(
-  '/submit/:assessmentId',
-  authenticate,
+  '/:assessmentId/submit',
   submissionController.submitAssessment
 );
 
+// Get all submissions for an assessment (admin/instructor only)
 router.get(
   '/assessment/:assessmentId',
-  authenticate,
+  authorize('admin', 'instructor'),
   submissionController.getSubmissionsByAssessment
 );
 
+// Get user's own submissions for an assessment
 router.get(
   '/my/:assessmentId',
-  authenticate,
   submissionController.getUserSubmissions
+);
+
+// Get detailed view of a submission
+router.get(
+  '/:submissionId/details',
+  submissionController.getSubmissionDetails
+);
+
+// Grade an essay question (admin/instructor only)
+router.post(
+  '/grade-essay',
+  authorize('admin', 'instructor'),
+  submissionController.gradeEssayQuestion
 );
 
 module.exports = router;

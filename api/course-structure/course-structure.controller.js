@@ -39,7 +39,7 @@ exports.createCourseStructure = async (req, res) => {
 // Get all course structures with pagination and filters
 exports.getCourseStructures = async (req, res) => {
   try {
-    const { courseId, page = 1, limit = 10, sort } = req.query;
+    const { courseId, page = 1, limit = 10, sort, includeLessons } = req.query;
     const filters = courseId ? { courseId } : {};
     
     // Build query with filters and options
@@ -47,7 +47,10 @@ exports.getCourseStructures = async (req, res) => {
       page: parseInt(page),
       limit: parseInt(limit),
       sort: sort || { sequence: 1 },
-      populate: { path: 'courseId', select: 'title' }
+      populate: [
+        { path: 'courseId', select: 'title' },
+        includeLessons === 'true' ? { path: 'lessons' } : null
+      ].filter(Boolean)
     });
 
     // Execute query and get total count
@@ -72,8 +75,15 @@ exports.getCourseStructures = async (req, res) => {
 // Get a single course structure by ID
 exports.getCourseStructureById = async (req, res) => {
   try {
-    const structure = await CourseStructure.findById(req.params.id)
+    const query = CourseStructure.findById(req.params.id)
       .populate('courseId', 'title');
+    
+    // Optionally populate lessons
+    if (req.query.includeLessons === 'true') {
+      query.populate('lessons');
+    }
+    
+    const structure = await query;
     
     if (!structure) {
       return res.status(404).json({ message: 'Course structure not found' });

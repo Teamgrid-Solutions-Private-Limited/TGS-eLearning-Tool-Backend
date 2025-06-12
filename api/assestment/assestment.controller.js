@@ -1,4 +1,4 @@
-const Assessment = require('../models/assessment.model');
+const Assessment = require('../../models/assessment.model');
 const mongoose = require('mongoose');
 
 class AssessmentController {
@@ -24,7 +24,9 @@ class AssessmentController {
     try {
       const assessments = await Assessment.find()
         .populate('lesson', 'title')
-        .populate('course', 'title');
+        .populate('course', 'title')
+        .populate('courseStructure', 'title')
+        .populate('questions.question');
       
       res.status(200).json({
         success: true,
@@ -44,7 +46,9 @@ class AssessmentController {
     try {
       const assessment = await Assessment.findById(req.params.id)
         .populate('lesson', 'title')
-        .populate('course', 'title');
+        .populate('course', 'title')
+        .populate('courseStructure', 'title')
+        .populate('questions.question');
 
       if (!assessment) {
         return res.status(404).json({
@@ -125,7 +129,8 @@ class AssessmentController {
     try {
       const assessments = await Assessment.find({ course: req.params.courseId })
         .populate('lesson', 'title')
-        .populate('course', 'title');
+        .populate('course', 'title')
+        .populate('courseStructure', 'title');
 
       res.status(200).json({
         success: true,
@@ -145,7 +150,29 @@ class AssessmentController {
     try {
       const assessments = await Assessment.find({ lesson: req.params.lessonId })
         .populate('lesson', 'title')
-        .populate('course', 'title');
+        .populate('course', 'title')
+        .populate('courseStructure', 'title');
+
+      res.status(200).json({
+        success: true,
+        count: assessments.length,
+        data: assessments
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  }
+  
+  // Get assessments by course structure
+  async getAssessmentsByCourseStructure(req, res) {
+    try {
+      const assessments = await Assessment.find({ courseStructure: req.params.courseStructureId })
+        .populate('lesson', 'title')
+        .populate('course', 'title')
+        .populate('courseStructure', 'title');
 
       res.status(200).json({
         success: true,
@@ -160,10 +187,75 @@ class AssessmentController {
     }
   }
 
+  // Add question to assessment
+  async addQuestionToAssessment(req, res) {
+    try {
+      const assessment = await Assessment.findById(req.params.id);
+      
+      if (!assessment) {
+        return res.status(404).json({
+          success: false,
+          error: 'Assessment not found'
+        });
+      }
+      
+      assessment.questions.push({
+        question: req.body.questionId,
+        weight: req.body.weight || 1
+      });
+      
+      await assessment.save();
+      
+      const updatedAssessment = await Assessment.findById(req.params.id)
+        .populate('questions.question');
+      
+      res.status(200).json({
+        success: true,
+        data: updatedAssessment
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        error: error.message
+      });
+    }
+  }
+  
+  // Remove question from assessment
+  async removeQuestionFromAssessment(req, res) {
+    try {
+      const assessment = await Assessment.findById(req.params.id);
+      
+      if (!assessment) {
+        return res.status(404).json({
+          success: false,
+          error: 'Assessment not found'
+        });
+      }
+      
+      assessment.questions = assessment.questions.filter(
+        q => q._id.toString() !== req.params.questionItemId
+      );
+      
+      await assessment.save();
+      
+      res.status(200).json({
+        success: true,
+        data: assessment
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        error: error.message
+      });
+    }
+  }
+
   // Submit assessment answers
   async submitAssessment(req, res) {
     try {
-      const assessment = await Assessment.findById(req.params.id);
+      const assessment = await Assessment.findById(req.params.id)
+        .populate('questions.question');
       
       if (!assessment) {
         return res.status(404).json({

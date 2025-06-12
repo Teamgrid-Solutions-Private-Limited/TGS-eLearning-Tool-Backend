@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const contentItemSchema = new mongoose.Schema({
   lessonId: {
-    type: mongoose.Schema.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Lesson',
     required: [true, 'Lesson ID is required']
   },

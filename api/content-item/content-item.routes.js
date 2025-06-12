@@ -10,7 +10,7 @@ const {
 const router = express.Router();
 
 // Protect middleware to ensure authentication
-const { protect } = require('../../middleware/auth');
+const { protect, requireVerifiedEmail } = require('../../middleware/auth');
 
 // Apply protection to all routes
 router.use(protect);
@@ -18,12 +18,12 @@ router.use(protect);
 router
   .route('/')
   .get(getContentItems)
-  .post(createContentItem);
+  .post(requireVerifiedEmail, createContentItem);
 
 router
   .route('/:id')
   .get(getContentItem)
-  .put(updateContentItem)
-  .delete(deleteContentItem);
+  .put(requireVerifiedEmail, updateContentItem)
+  .delete(requireVerifiedEmail, deleteContentItem);
 
 module.exports = router; 
