@@ -12,12 +12,22 @@ exports.createLesson = async (req, res) => {
   }
 };
 
-// Get all lessons (with optional course filter)
+// Get all lessons (with optional course or courseStructure filter)
 exports.getLessons = async (req, res) => {
   try {
-    const filter = req.query.course ? { course: req.query.course } : {};
+    const filter = {};
+    
+    if (req.query.course) {
+      filter.course = req.query.course;
+    }
+    
+    if (req.query.courseStructure) {
+      filter.courseStructure = req.query.courseStructure;
+    }
+    
     const lessons = await Lesson.find(filter)
       .populate('course', 'title')
+      .populate('courseStructure', 'title')
       .sort({ sequence: 1 });
     res.json(lessons);
   } catch (error) {
@@ -28,7 +38,9 @@ exports.getLessons = async (req, res) => {
 // Get a single lesson by ID
 exports.getLessonById = async (req, res) => {
   try {
-    const lesson = await Lesson.findById(req.params.id).populate('course', 'title');
+    const lesson = await Lesson.findById(req.params.id)
+      .populate('course', 'title')
+      .populate('courseStructure', 'title');
     if (!lesson) {
       return res.status(404).json({ message: 'Lesson not found' });
     }

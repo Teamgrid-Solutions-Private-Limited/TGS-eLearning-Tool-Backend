@@ -1,14 +1,14 @@
-const express          = require('express');
+const express = require('express');
 const exportController = require('../xapi/exportController');
-// const auth             = require('../middleware/authMiddleware');
-// const tenant           = require('../middleware/tenantMiddleware');
+const { protect, requireVerifiedEmail } = require('../../middleware/auth');
 
 const router = express.Router();
 
-// router.use(auth);
-// router.use(tenant);
+// Protect all routes
+router.use(protect);
 
-router.get('/:id/zip', exportController.exportCourse);
-router.post('/:id/zip', exportController.exportCourse);
+// Export routes - all require email verification
+router.get('/:id/zip', requireVerifiedEmail, exportController.exportCourse);
+router.post('/:id/zip', requireVerifiedEmail, exportController.exportCourse);
 
 module.exports = router;

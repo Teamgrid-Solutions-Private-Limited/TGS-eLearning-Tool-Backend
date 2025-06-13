@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const assessmentController = require('../assestment/assestment.controller');
-const assestmentController = require('../assestment/assestment.controller');
-// const { protect, authorize } = require('../../middleware/auth');
+const { protect, authorize } = require('../../middleware/auth');
 
 // Protect all routes
 // router.use(protect);
@@ -23,7 +22,7 @@ const assestmentController = require('../assestment/assestment.controller');
 // router.post('/:id/submit', authorize('admin', 'instructor', 'student'), assessmentController.submitAssessment);
 router.post('/assestment/create',assestmentController.createAssessment)
 // Filter assessments
-// router.get('/course/:courseId', authorize('admin', 'instructor', 'student'), assessmentController.getAssessmentsByCourse);
-// router.get('/lesson/:lessonId', authorize('admin', 'instructor', 'student'), assessmentController.getAssessmentsByLesson);
+router.get('/course/:courseId', authorize('admin', 'instructor', 'student'), assessmentController.getAssessmentsByCourse);
+router.get('/lesson/:lessonId', authorize('admin', 'instructor', 'student'), assessmentController.getAssessmentsByLesson);
 
 module.exports = router; 

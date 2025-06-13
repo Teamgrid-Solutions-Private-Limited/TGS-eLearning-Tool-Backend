@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const courseStructureSchema = new mongoose.Schema({
   courseId: {
-    type: mongoose.Schema.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Course',
     required: [true, 'Course ID is required']
   },
@@ -23,6 +23,14 @@ const courseStructureSchema = new mongoose.Schema({
   timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
+});
+
+// Virtual field for lessons
+courseStructureSchema.virtual('lessons', {
+  ref: 'Lesson',
+  localField: '_id',
+  foreignField: 'courseStructure',
+  justOne: false
 });
 
 // Ensure sequence numbers are unique within a course

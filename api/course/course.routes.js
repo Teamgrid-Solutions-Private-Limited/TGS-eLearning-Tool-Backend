@@ -18,7 +18,7 @@ const {
   validateDuplicateCourse
 } = require('./course.validation');
 
-const { protect, authorize } = require('../../middleware/auth');
+const { protect, authorize, requireVerifiedEmail } = require('../../middleware/auth');
 
 // Protect all routes
 router.use(protect);
@@ -27,14 +27,14 @@ router.use(protect);
 router.get('/', getCourses);
 router.get('/:id', validateGetCourse, getCourse);
 
-// Instructor/Admin only routes
-router.post('/', authorize('instructor', 'admin'), validateCreateCourse, createCourse);
-router.put('/:id', authorize('instructor', 'admin'), validateUpdateCourse, updateCourse);
-router.delete('/:id', authorize('instructor', 'admin'), validateGetCourse, deleteCourse);
+// Instructor/Admin only routes - require email verification
+router.post('/', authorize('instructor', 'admin'), requireVerifiedEmail, validateCreateCourse, createCourse);
+router.put('/:id', authorize('instructor', 'admin'), requireVerifiedEmail, validateUpdateCourse, updateCourse);
+router.delete('/:id', authorize('instructor', 'admin'), requireVerifiedEmail, validateGetCourse, deleteCourse);
 
-// Course state management routes
-router.put('/:id/publish', authorize('instructor', 'admin'), validateGetCourse, publishCourse);
-router.put('/:id/archive', authorize('instructor', 'admin'), validateGetCourse, archiveCourse);
-router.post('/:id/duplicate', authorize('instructor', 'admin'), validateDuplicateCourse, duplicateCourse);
+// Course state management routes - require email verification
+router.put('/:id/publish', authorize('instructor', 'admin'), requireVerifiedEmail, validateGetCourse, publishCourse);
+router.put('/:id/archive', authorize('instructor', 'admin'), requireVerifiedEmail, validateGetCourse, archiveCourse);
+router.post('/:id/duplicate', authorize('instructor', 'admin'), requireVerifiedEmail, validateDuplicateCourse, duplicateCourse);
 
 module.exports = router; 

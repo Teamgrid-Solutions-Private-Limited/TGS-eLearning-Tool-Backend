@@ -1,5 +1,5 @@
 const express = require('express');
-const { protect, authorize } = require('../../middleware/auth');
+const { protect, authorize, requireVerifiedEmail } = require('../../middleware/auth');
 const {
   createOrganization,
   getOrganizations,
@@ -18,7 +18,7 @@ router.post(
 router.use(protect);
 
 // Stats route
-router.get('/stats', authorize('admin'), getOrganizationStats);
+router.get('/stats', authorize('admin'), requireVerifiedEmail, getOrganizationStats);
 
 // Standard CRUD routes
 router
@@ -29,7 +29,7 @@ router
 router
   .route('/:id')
   .get(getOrganization)
-  .put(authorize('admin'), updateOrganization)
-  .delete(authorize('admin'), deleteOrganization);
+  .put(authorize('admin'), requireVerifiedEmail, updateOrganization)
+  .delete(authorize('admin'), requireVerifiedEmail, deleteOrganization);
 
 module.exports = router; 

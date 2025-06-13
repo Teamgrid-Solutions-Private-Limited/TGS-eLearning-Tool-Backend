@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const { AppError } = require('./errorHandler');
 const config = require('../config/env');
 const User = require('../models/user.model');
+const asyncHandler = require('./asyncHandler');
 
 const protect = async (req, res, next) => {
   try {
@@ -40,7 +41,8 @@ const protect = async (req, res, next) => {
         id: user?._id,
         hasOrg: !!user?.organization,
         orgId: user?.organization?._id,
-        roleName: user?.role?.name
+        roleName: user?.role?.name,
+        isEmailVerified: user?.isEmailVerified
       });
 
       if (!user) {
@@ -58,7 +60,8 @@ const protect = async (req, res, next) => {
         role: user.role,
         email: user.email,
         firstName: user.firstName,
-        lastName: user.lastName
+        lastName: user.lastName,
+        isEmailVerified: user.isEmailVerified
       };
       
       next();
@@ -93,7 +96,21 @@ const authorize = (...roleNames) => {
   };
 };
 
+// Middleware to require verified email
+const requireVerifiedEmail = asyncHandler(async (req, res, next) => {
+  if (!req.user.isEmailVerified) {
+    return next(
+      new AppError(
+        'Email verification required. Please verify your email before accessing this resource.',
+        403
+      )
+    );
+  }
+  next();
+});
+
 module.exports = {
   protect,
-  authorize
+  authorize,
+  requireVerifiedEmail
 }; 
