@@ -52,6 +52,11 @@ class SubmissionController {
       const processedAnswers = [];
 
       for (const questionItem of assessment.questions) {
+        if (!questionItem.question) {
+          // Optionally log or count this, but do not push to processedAnswers
+          maxPossibleScore += questionItem.weight || 1;
+          continue;
+        }
         const questionId = questionItem.question._id.toString();
         const question = questionItem.question;
         const weight = questionItem.weight || 1;
