@@ -27,7 +27,7 @@ class SubmissionController {
 
       // Check if user has reached maximum attempts
       const previousAttempts = await Submission.find({ 
-        user: user._id, 
+        user: user.id, 
         assessment: assessment._id 
       });
       
@@ -158,7 +158,7 @@ class SubmissionController {
 
       // Create submission record
       const submission = new Submission({
-        user: user._id,
+        user: user.id,
         assessment: assessment._id,
         answers: processedAnswers,
         score: totalScore,
@@ -306,7 +306,7 @@ class SubmissionController {
   async getUserSubmissions(req, res) {
     try {
       const submissions = await Submission.find({
-        user: req.user._id,
+        user: req.user.id,
         assessment: req.params.assessmentId
       }).sort('-submittedAt');
       
@@ -338,7 +338,7 @@ class SubmissionController {
       }
       
       // Check if the user is authorized to view this submission
-      const isOwner = submission.user._id.toString() === req.user._id.toString();
+      const isOwner = submission.user.toString() === req.user.id.toString();
       const isAdmin = req.user.role === 'admin' || req.user.role === 'instructor';
       
       if (!isOwner && !isAdmin) {

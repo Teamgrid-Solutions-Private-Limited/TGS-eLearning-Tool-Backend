@@ -55,7 +55,8 @@ const protect = async (req, res, next) => {
 
       // Add user to request object
       req.user = {
-        id: user._id,
+        id: user.id,
+        _id: user._id,
         organization: user.organization,
         role: user.role,
         email: user.email,
