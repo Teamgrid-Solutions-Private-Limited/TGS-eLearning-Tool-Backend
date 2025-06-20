@@ -11,6 +11,7 @@ const progressRoutes = require('../api/progress/progress.routes');
 const assestmentRoutes = require('../api/assestment/assestment.routes');
 const submissionRoutes = require('../api/submission/submissio.routes');
 const questionRoutes = require('../api/question/question.routes');
+const mediaAssetRoutes = require('../api/media-assets/media-asset.route');
 
 module.exports = (app) => {
   // API Routes
@@ -22,6 +23,7 @@ module.exports = (app) => {
   router.use('/lessons', lessonRoutes);
   router.use('/course-structures', courseStructureRoutes);
   router.use('/content-items', contentItemRoutes);
+  router.use('/media-assets', mediaAssetRoutes);
   // Add other routes here as they are created
   router.use('/organizations', organizationRoutes);
   router.use('/export', exportRoutes);
